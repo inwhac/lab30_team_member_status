@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>팀원 현황 — 연수원 3.0</title>
+<style>
+:root {
+  --primary: #3D6BE4;
+  --primary-light: #EEF2FD;
+  --primary-mid: #C4D2F9;
+  --text-primary: #1A1D23;
+  --text-secondary: #5A6070;
+  --text-tertiary: #9BA3B4;
+  --border: #E4E7EF;
+  --border-light: #F0F2F7;
+  --bg-page: #F0F2F8;
+  --bg-white: #FFFFFF;
+  --bg-header: #F8F9FC;
+  --s-plan: #6B7AE8; --s-plan-bg: #EDEFFC;
+  --s-learning: #22A77C; --s-learning-bg: #E5F7F2;
+  --s-end: #9BA3B4; --s-end-bg: #F0F2F7;
+  --s-complete: #3D6BE4; --s-complete-bg: #EEF2FD;
+  --s-incomplete: #E8523D; --s-incomplete-bg: #FDEEED;
+  --s-pending: #D4860A; --s-pending-bg: #FEF6E7;
+  --c-online: #22A77C; --c-offline: #9B59B6;
+  --c-hybrid: #E8523D; --c-micro: #D4860A;
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.07);
+  --shadow-panel: 0 8px 40px rgba(0,0,0,0.14);
+  --font: 'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg-page);color:var(--text-primary);font-size:14px;line-height:1.5;min-height:100vh;}
+
+/* GNB */
+.gnb{height:56px;background:var(--bg-white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 var(--border);}
+.gnb-logo{font-weight:700;font-size:16px;color:var(--primary);letter-spacing:-0.3px;}
+.gnb-bc{font-size:13px;color:var(--text-tertiary);display:flex;align-items:center;gap:6px;}
+.gnb-bc span{color:var(--text-secondary);font-weight:500;}
+.gnb-bc::before{content:'/';}
+.gnb-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.gnb-av{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+
+/* Page */
+.pw{max-width:1200px;margin:0 auto;padding:28px 24px 80px;}
+.page-title{font-size:20px;font-weight:700;letter-spacing:-0.3px;margin-bottom:20px;}
+
+/* Search Card */
+.search-card{background:var(--bg-white);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 24px;margin-bottom:16px;box-shadow:var(--shadow);}
+.search-row{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;}
+.sf{display:flex;flex-direction:column;gap:5px;}
+.sf label{font-size:11px;font-weight:700;color:var(--text-secondary);letter-spacing:0.3px;text-transform:uppercase;}
+.fg{display:flex;gap:8px;}
+select,input[type=text]{height:36px;border:1px solid var(--border);border-radius:var(--r-sm);padding:0 10px;font-size:13px;color:var(--text-primary);background:var(--bg-white);outline:none;transition:border-color .15s;font-family:var(--font);}
+select:focus,input[type=text]:focus{border-color:var(--primary);}
+select{min-width:130px;cursor:pointer;}
+input[type=text]{width:210px;}
+input[type=text]::placeholder{color:var(--text-tertiary);}
+.search-acts{display:flex;gap:8px;margin-left:auto;align-items:flex-end;}
+.btn{height:36px;padding:0 16px;border-radius:var(--r-sm);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:#2d58d0;}
+.btn-ghost{background:var(--bg-white);color:var(--text-secondary);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--bg-header);}
+
+/* ── Dashboard Summary ── */
+.dash-section{margin-bottom:16px;}
+.dash-context{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.dash-context-label{font-size:13px;font-weight:600;color:var(--text-secondary);}
+.dash-context-sub{font-size:12px;color:var(--text-tertiary);}
+
+/* 상단 1행 — 핵심 지표 크게 */
+.dash-top{display:grid;grid-template-columns:1fr 1fr 2fr 2fr;gap:12px;margin-bottom:12px;}
+/* 하단 2행 — 보조 지표 */
+.dash-bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+
+.dcard{background:var(--bg-white);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:box-shadow .15s;}
+.dcard:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1);}
+.dcard-accent{border-left:3px solid var(--primary);}
+.dcard-accent2{border-left:3px solid var(--s-learning);}
+
+.dcard-label{font-size:11px;font-weight:700;color:var(--text-tertiary);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;}
+.dcard-val{font-size:32px;font-weight:800;color:var(--text-primary);letter-spacing:-1px;line-height:1;}
+.dcard-val .unit{font-size:16px;font-weight:500;color:var(--text-secondary);margin-left:3px;letter-spacing:0;}
+.dcard-val-sm{font-size:26px;}
+
+/* 분할 지표 카드 (학습 수 / 수료 수) */
+.dcard-split{}
+.dcard-split .dcard-main{display:flex;align-items:flex-end;gap:12px;margin-bottom:12px;}
+.dcard-split .dcard-main-val{font-size:32px;font-weight:800;color:var(--text-primary);letter-spacing:-1px;line-height:1;}
+.dcard-split .dcard-main-val .unit{font-size:16px;font-weight:500;color:var(--text-secondary);margin-left:3px;letter-spacing:0;}
+.dcard-divider{height:1px;background:var(--border-light);margin-bottom:10px;}
+.dcard-breakdown{display:flex;gap:0;}
+.bd-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;}
+.bd-item:not(:last-child){border-right:1px solid var(--border-light);}
+.bd-dot{width:6px;height:6px;border-radius:50%;margin-bottom:1px;}
+.bd-num{font-size:17px;font-weight:700;line-height:1;}
+.bd-label{font-size:10px;font-weight:600;color:var(--text-tertiary);letter-spacing:0.2px;}
+
+/* 수료율 게이지 */
+.gauge-wrap{margin-top:8px;}
+.gauge-bar{height:6px;border-radius:20px;background:var(--border-light);overflow:hidden;margin-bottom:5px;}
+.gauge-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--primary),#6B7AE8);transition:width .6s cubic-bezier(.4,0,.2,1);}
+.gauge-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);}
+
+/* 보조 지표 카드 */
+.dcard-sub-val{font-size:24px;font-weight:700;color:var(--text-primary);letter-spacing:-0.5px;line-height:1;margin-bottom:4px;}
+.dcard-sub-val .unit{font-size:13px;font-weight:500;color:var(--text-secondary);}
+.dcard-sub-desc{font-size:11px;color:var(--text-tertiary);}
+
+/* 애니메이션 */
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+.dcard{animation:fadeIn .25s ease both;}
+.dcard:nth-child(1){animation-delay:.02s;}
+.dcard:nth-child(2){animation-delay:.05s;}
+.dcard:nth-child(3){animation-delay:.08s;}
+.dcard:nth-child(4){animation-delay:.11s;}
+
+/* List Card */
+.list-card{background:var(--bg-white);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden;}
+.list-toolbar{display:flex;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);gap:10px;background:var(--bg-header);}
+.list-count{font-size:13px;color:var(--text-secondary);}
+.list-count strong{color:var(--text-primary);font-weight:700;}
+.sort-sel{height:30px;padding:0 8px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;color:var(--text-secondary);background:var(--bg-white);cursor:pointer;font-family:var(--font);}
+.toolbar-right{margin-left:auto;}
+
+/* Table */
+table{width:100%;border-collapse:collapse;}
+thead th{background:var(--bg-header);padding:9px 14px;font-size:11px;font-weight:700;color:var(--text-tertiary);text-align:left;border-bottom:1px solid var(--border);letter-spacing:0.3px;white-space:nowrap;}
+thead th.tc{text-align:center;}
+tbody tr{border-bottom:1px solid var(--border-light);transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--bg-header);}
+tbody td{padding:12px 14px;font-size:13px;vertical-align:middle;}
+tbody td.tc{text-align:center;}
+
+.no-col{width:44px;color:var(--text-tertiary);font-size:12px;text-align:center;}
+
+/* 임직원 통합 셀 */
+.emp-cell{display:flex;align-items:center;gap:12px;}
+.emp-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+.emp-meta{}
+.emp-name{font-weight:700;font-size:14px;color:var(--text-primary);line-height:1.2;}
+.emp-dept{font-size:11px;color:var(--text-secondary);margin-top:2px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.emp-role{font-size:11px;color:var(--text-tertiary);margin-top:1px;}
+
+/* 학습 수치 */
+.stat-num{font-size:14px;font-weight:700;color:var(--text-primary);}
+.stat-num.z{color:var(--text-tertiary);font-weight:400;}
+.stat-unit{font-size:11px;color:var(--text-tertiary);margin-left:1px;}
+
+/* 뱃지 */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+.badge-plan{background:var(--s-plan-bg);color:var(--s-plan);}
+.badge-learning{background:var(--s-learning-bg);color:var(--s-learning);}
+.badge-end{background:var(--s-end-bg);color:var(--s-end);}
+.badge-complete{background:var(--s-complete-bg);color:var(--s-complete);}
+.badge-incomplete{background:var(--s-incomplete-bg);color:var(--s-incomplete);}
+.badge-pending{background:var(--s-pending-bg);color:var(--s-pending);}
+.badge-online{background:#E5F7F2;color:var(--c-online);}
+.badge-offline{background:#F3EDF9;color:var(--c-offline);}
+.badge-hybrid{background:#FDEEED;color:var(--c-hybrid);}
+.badge-micro{background:#FEF6E7;color:var(--c-micro);}
+
+/* 상세 버튼 */
+.btn-detail{height:28px;padding:0 12px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg-white);font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;font-family:var(--font);transition:all .15s;}
+.btn-detail:hover{background:var(--primary-light);border-color:var(--primary-mid);}
+
+/* Empty */
+.empty-row td{text-align:center;padding:48px;color:var(--text-tertiary);font-size:14px;}
+
+/* ── Side Panel ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,18,30,0.3);z-index:200;backdrop-filter:blur(2px);}
+.overlay.open{display:block;}
+.side-panel{position:fixed;top:0;right:0;bottom:0;width:600px;background:var(--bg-white);box-shadow:var(--shadow-panel);z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow:hidden;}
+.side-panel.open{transform:translateX(0);}
+
+.ph{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--border);background:var(--bg-header);flex-shrink:0;}
+.ph-title{font-size:15px;font-weight:700;}
+.ph-close{width:32px;height:32px;border:none;background:none;font-size:20px;color:var(--text-tertiary);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm);transition:background .1s;}
+.ph-close:hover{background:var(--border-light);}
+
+.pb{overflow-y:auto;flex:1;padding:24px;}
+
+/* 임직원 정보 카드 */
+.emp-card{display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--bg-page);border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:20px;}
+.ec-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0;}
+.ec-meta{flex:1;}
+.ec-name{font-size:17px;font-weight:700;margin-bottom:2px;}
+.ec-dept{font-size:12px;color:var(--text-secondary);margin-bottom:2px;}
+.ec-role{font-size:12px;color:var(--text-tertiary);}
+.ec-stats{display:flex;gap:14px;flex-shrink:0;}
+.ec-stat{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.ec-sv{font-size:18px;font-weight:700;}
+.ec-sl{font-size:10px;color:var(--text-tertiary);font-weight:500;}
+
+/* 패널 필터 */
+.pf-label{font-size:12px;font-weight:700;color:var(--text-tertiary);letter-spacing:0.4px;text-transform:uppercase;margin-bottom:10px;}
+.filter-row{display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
+.fg2{display:flex;flex-direction:column;gap:5px;}
+.fg2 label{font-size:11px;font-weight:700;color:var(--text-secondary);}
+.chips{display:flex;gap:5px;flex-wrap:wrap;}
+.chip{height:27px;padding:0 10px;border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:500;color:var(--text-secondary);background:var(--bg-white);cursor:pointer;transition:all .13s;font-family:var(--font);}
+.chip:hover{border-color:var(--primary-mid);color:var(--primary);}
+.chip.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+
+/* 패널 학습 목록 */
+.plh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.plt{font-size:13px;font-weight:700;}
+.plc{font-size:12px;color:var(--text-tertiary);}
+.pt{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;}
+.pt th{background:var(--bg-header);padding:9px 12px;font-size:11px;font-weight:700;color:var(--text-tertiary);text-align:left;border-bottom:1px solid var(--border);}
+.pt td{padding:11px 12px;font-size:12px;vertical-align:middle;border-bottom:1px solid var(--border-light);}
+.pt tr:last-child td{border-bottom:none;}
+.pt tr:hover td{background:var(--bg-header);}
+.cn{font-weight:600;font-size:13px;color:var(--text-primary);}
+.cp{font-size:11px;color:var(--text-tertiary);margin-top:2px;}
+.panel-empty{text-align:center;padding:32px;color:var(--text-tertiary);font-size:13px;}
+</style>
+</head>
+<body>
+
+<!-- GNB -->
+<nav class="gnb">
+  <div class="gnb-logo">연수원 3.0</div>
+  <div class="gnb-bc">my Canvas <span>팀원 현황</span></div>
+  <div class="gnb-right"><div class="gnb-av">홍</div></div>
+</nav>
+
+<div class="pw">
+  <h1 class="page-title">팀원 현황</h1>
+
+  <!-- 검색 영역 -->
+  <div class="search-card">
+    <div class="search-row">
+      <div class="sf">
+        <label>부서</label>
+        <div class="fg">
+          <select id="dept1" onchange="onDept1Change()">
+            <option value="all">전체</option>
+            <option value="IT기획팀" selected>IT기획팀</option>
+            <option value="인사팀">인사팀</option>
+            <option value="마케팅팀">마케팅팀</option>
+          </select>
+          <select id="dept2" style="display:none;" onchange="applyFilters()">
+            <option value="all">전체</option>
+            <option value="LMS솔루션팀">LMS솔루션팀</option>
+            <option value="CMS솔루션팀">CMS솔루션팀</option>
+          </select>
+        </div>
+      </div>
+      <div class="sf">
+        <label>학습 연도</label>
+        <select id="year" onchange="applyFilters()">
+          <option value="2026" selected>2026년</option>
+        </select>
+      </div>
+      <div class="sf">
+        <label>검색어</label>
+        <input type="text" id="keyword" placeholder="이름, 사번, 이메일 검색"
+          onkeydown="if(event.key==='Enter') applyFilters()" />
+      </div>
+      <div class="search-acts">
+        <button class="btn btn-ghost" onclick="resetSearch()">초기화</button>
+        <button class="btn btn-primary" onclick="applyFilters()">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.8"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          검색
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 대시보드 요약 -->
+  <div class="dash-section">
+    <div class="dash-context">
+      <div class="dash-context-label" id="dash-title">IT기획팀 전체</div>
+      <div class="dash-context-sub" id="dash-sub">2026년 · <span id="dash-member-count">8</span>명 기준</div>
+    </div>
+
+    <!-- 상단 행: 총인원 / 신청 / 학습수 / 수료수 -->
+    <div class="dash-top" id="dash-top"></div>
+    <!-- 하단 행: 평균 학습시간 / 평균 신청수 / 수료율 -->
+    <div class="dash-bottom" id="dash-bottom"></div>
+  </div>
+
+  <!-- 목록 -->
+  <div class="list-card">
+    <div class="list-toolbar">
+      <div class="list-count">총 <strong id="list-count-num">8</strong>명</div>
+      <div class="toolbar-right">
+        <select class="sort-sel" id="sort-sel" onchange="applyFilters()">
+          <option value="name-asc">이름 오름차순</option>
+          <option value="name-desc">이름 내림차순</option>
+          <option value="dept-asc">부서명 오름차순</option>
+          <option value="dept-desc">부서명 내림차순</option>
+        </select>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="tc no-col">NO</th>
+          <th>임직원</th>
+          <th class="tc">신청</th>
+          <th class="tc">예정</th>
+          <th class="tc">학습중</th>
+          <th class="tc">종료</th>
+          <th class="tc">수료</th>
+          <th class="tc">상세</th>
+        </tr>
+      </thead>
+      <tbody id="member-list"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 패널 오버레이 -->
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+
+<!-- 사이드 패널 -->
+<div class="side-panel" id="side-panel">
+  <div class="ph">
+    <div class="ph-title">상세정보 조회</div>
+    <button class="ph-close" onclick="closePanel()">×</button>
+  </div>
+  <div class="pb" id="panel-body"></div>
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   데이터
+════════════════════════════════════════ */
+const COLORS = ['#3D6BE4','#22A77C','#E8523D','#D4860A','#9B59B6','#1A9ED4','#E86E3D','#2ECC71'];
+
+const ALL_MEMBERS = [
+  {
+    id:0, name:'김아름', avatar:'김', color:'#3D6BE4',
+    deptTop:'IT기획팀', deptSub:'LMS솔루션팀', position:'선임', grade:'대리',
+    apply:6, plan:1, learning:2, end:3, complete:3,
+    courses:[
+      {type:'online', name:'UX 기획 입문 과정', start:'2026.01.06', end:'2026.01.31', lstatus:'종료', cstatus:'수료'},
+      {type:'online', name:'데이터 기반 서비스 기획', start:'2026.02.10', end:'2026.03.07', lstatus:'종료', cstatus:'수료'},
+      {type:'offline', name:'서비스 디자인 씽킹 워크숍', start:'2026.03.14', end:'2026.03.14', lstatus:'종료', cstatus:'수료'},
+      {type:'online', name:'Jira & Confluence 활용 실무', start:'2026.04.01', end:'2026.04.30', lstatus:'학습중', cstatus:'처리 전'},
+      {type:'micro', name:'AI 활용 업무 자동화 (마이크로)', start:'2026.05.01', end:'2026.05.15', lstatus:'학습중', cstatus:'처리 전'},
+      {type:'online', name:'PO/PM 심화 역량 과정', start:'2026.07.01', end:'2026.07.31', lstatus:'예정', cstatus:'처리 전'},
+    ]
+  },
+  {
+    id:1, name:'김태준', avatar:'김', color:'#22A77C',
+    deptTop:'IT기획팀', deptSub:'LMS솔루션팀', position:'선임', grade:'대리',
+    apply:5, plan:2, learning:1, end:2, complete:2,
+    courses:[
+      {type:'online', name:'프론트엔드 기초 (HTML/CSS/JS)', start:'2026.01.13', end:'2026.02.10', lstatus:'종료', cstatus:'수료'},
+      {type:'hybrid', name:'협업 커뮤니케이션 심화', start:'2026.02.17', end:'2026.03.14', lstatus:'종료', cstatus:'수료'},
+      {type:'online', name:'비즈니스 글쓰기 실전', start:'2026.04.07', end:'2026.05.05', lstatus:'학습중', cstatus:'처리 전'},
+      {type:'online', name:'정보 설계 & IA 실무', start:'2026.06.02', end:'2026.06.30', lstatus:'예정', cstatus:'처리 전'},
+      {type:'offline', name:'연간 직무역량 교육 (하반기)', start:'2026.08.10', end:'2026.08.11', lstatus:'예정', cstatus:'처리 전'},
+    ]
+  },
+  {
+    id:2, name:'이강은', avatar:'이', color:'#9B59B6',
+    deptTop:'IT기획팀', deptSub:'LMS솔루션팀', position:'', grade:'사원',
+    apply:3, plan:1, learning:1, end:1, complete:1,
+    courses:[
+      {type:'online', name:'신입 온보딩 교육 2026', start:'2026.01.06', end:'2026.01.17', lstatus:'종료', cstatus:'수료'},
+      {type:'online', name:'프로젝트 관리 기초 (PMP 입문)', start:'2026.03.03', end:'2026.03.28', lstatus:'학습중', cstatus:'처리 전'},
+      {type:'micro', name:'업무 생산성 향상 (시간 관리 편)', start:'2026.05.19', end:'2026.05.23', lstatus:'예정', cstatus:'처리 전'},
+    ]
+  },
+  {
+    id:3, name:'정승모', avatar:'정', color:'#D4860A',
+    deptTop:'IT기획팀', deptSub:'', position:'수석', grade:'차장',
+    apply:4, plan:0, learning:2, end:2, complete:1,
+    courses:[
+      {type:'online', name:'전략적 사고와 의사결정', start:'2026.01.20', end:'2026.02.17', lstatus:'종료', cstatus:'수료'},
+      {type:'offline', name:'리더십 심화 과정 (관리자급)', start:'2026.02.24', end:'2026.02.25', lstatus:'종료', cstatus:'미수료'},
+      {type:'online', name:'디지털 전환 전략 과정', start:'2026.04.14', end:'2026.05.12', lstatus:'학습중', cstatus:'처리 전'},
+      {type:'hybrid', name:'조직문화 및 성과관리 실무', start:'2026.05.26', end:'2026.06.23', lstatus:'학습중', cstatus:'처리 전'},
+    ]
+  },
+  {
+    id:4, name:'조아라', avatar:'조', color:'#E8523D',
+    deptTop:'IT기획팀', deptSub:'CMS솔루션팀', position:'선임', grade:'대리',
+    apply:4, plan:2, learning:1, end:1, complete:1,
+    courses:[
+      {type:'online', name:'CMS 콘텐츠 전략 기초', start:'2026.01.27', end:'2026.02.24', lstatus:'종료', cstatus:'수료'},
+      {type:'online', name:'SQL 기초 및 데이터 분석', start:'2026.03.10', end:'2026.04.07', lstatus:'학습중', cstatus:'처리 전'},
+      {type:'online', name:'마케팅 데이터 분석 실무', start:'2026.06.08', end:'2026.07.06', lstatus:'예정', cstatus:'처리 전'},
+      {type:'offline', name:'직무역량 강화 세미나 2026', start:'2026.07.13', end:'2026.07.13', lstatus:'예정', cstatus:'처리 전'},
+    ]
+  },
+  {
+    id:5, name:'박민준', avatar:'박', color:'#1A9ED4',
+    deptTop:'IT기획팀', deptSub:'CMS솔루션팀', position:'', grade:'주임',
+    apply:5, plan:1, learning:2, end:2, complete:2,
+    courses:[
+      {type:'online', name:'웹 접근성 기초 과정', start:'2026.01.06', end:'2026.01.31', lstatus:'종료', cstatus:'수료'},
+      {type:'online', name:'기술 문서 작성 실무', start:'2026.02.03', end:'2026.03.03', lstatus:'종료', cstatus:'수료'},
+      {type:'online', name:'API 설계 및 문서화', start:'2026.04.01', end:'2026.04.29', lstatus:'학습중', cstatus:'처리 전'},
+      {type:'micro', name:'협업툴 활용 팁 (Notion 편)', start:'2026.05.12', end:'2026.05.14', lstatus:'학습중', cstatus:'처리 전'},
+      {type:'online', name:'클라우드 기초 (AWS 입문)', start:'2026.07.06', end:'2026.08.03', lstatus:'예정', cstatus:'처리 전'},
+    ]
+  },
+  {
+    id:6, name:'이수현', avatar:'이', color:'#E86E3D',
+    deptTop:'IT기획팀', deptSub:'', position:'', grade:'사원',
+    apply:2, plan:0, learning:1, end:1, complete:0,
+    courses:[
+      {type:'online', name:'신입 온보딩 교육 2026', start:'2026.01.06', end:'2026.01.17', lstatus:'종료', cstatus:'미수료'},
+      {type:'online', name:'비즈니스 커뮤니케이션 기초', start:'2026.05.06', end:'2026.06.03', lstatus:'학습중', cstatus:'처리 전'},
+    ]
+  },
+  {
+    id:7, name:'최인화', avatar:'최', color:'#2ECC71',
+    deptTop:'IT기획팀', deptSub:'LMS솔루션팀', position:'선임', grade:'대리',
+    apply:5, plan:2, learning:2, end:1, complete:1,
+    courses:[
+      {type:'online', name:'PM 핵심 역량 강화 과정', start:'2026.01.13', end:'2026.02.10', lstatus:'종료', cstatus:'수료'},
+      {type:'offline', name:'애자일/스크럼 실전 워크숍', start:'2026.03.21', end:'2026.03.22', lstatus:'학습중', cstatus:'처리 전'},
+      {type:'hybrid', name:'사용자 리서치 방법론', start:'2026.04.14', end:'2026.05.12', lstatus:'학습중', cstatus:'처리 전'},
+      {type:'online', name:'LLM 기반 제품 기획 실무', start:'2026.06.16', end:'2026.07.14', lstatus:'예정', cstatus:'처리 전'},
+      {type:'online', name:'데이터 기반 의사결정 과정', start:'2026.08.03', end:'2026.08.31', lstatus:'예정', cstatus:'처리 전'},
+    ]
+  },
+];
+
+/* ════════════════════════════════════════
+   필터 상태
+════════════════════════════════════════ */
+let currentPanelMember = null; // 현재 열린 패널의 member 객체
+
+function getFiltered() {
+  const d1 = document.getElementById('dept1').value;
+  const d2 = document.getElementById('dept2').value;
+  const kw = document.getElementById('keyword').value.trim().toLowerCase();
+  const sort = document.getElementById('sort-sel').value;
+
+  let list = ALL_MEMBERS.filter(m => {
+    if (d1 !== 'all' && m.deptTop !== d1) return false;
+    if (d2 !== 'all' && m.deptSub !== d2) return false;
+    if (kw && !m.name.toLowerCase().includes(kw)) return false;
+    return true;
+  });
+
+  list = [...list].sort((a, b) => {
+    const getDept = m => m.deptSub ? `${m.deptTop} > ${m.deptSub}` : m.deptTop;
+    if (sort === 'name-asc')  return a.name.localeCompare(b.name, 'ko');
+    if (sort === 'name-desc') return b.name.localeCompare(a.name, 'ko');
+    if (sort === 'dept-asc')  return getDept(a).localeCompare(getDept(b), 'ko');
+    if (sort === 'dept-desc') return getDept(b).localeCompare(getDept(a), 'ko');
+    return 0;
+  });
+
+  return list;
+}
+
+function getContextLabel() {
+  const d1 = document.getElementById('dept1').value;
+  const d2 = document.getElementById('dept2').value;
+  if (d1 === 'all') return '전체 부서';
+  if (d2 === 'all' || !d2) return d1;
+  return `${d1} > ${d2}`;
+}
+
+/* ════════════════════════════════════════
+   집계
+════════════════════════════════════════ */
+function calcStats(list) {
+  const total = list.length;
+  const totalApply  = list.reduce((s,m) => s + m.apply, 0);
+  const totalPlan   = list.reduce((s,m) => s + m.plan, 0);
+  const totalLearn  = list.reduce((s,m) => s + m.learning, 0);
+  const totalEnd    = list.reduce((s,m) => s + m.end, 0);
+  const totalComp   = list.reduce((s,m) => s + m.complete, 0);
+
+  // 수료 수 (처리전 = end - complete, 미수료 추가)
+  const totalPending    = list.reduce((s,m) => {
+    const c = m.courses.filter(c => c.cstatus === '처리 전').length; return s+c;}, 0);
+  const totalIncomplete = list.reduce((s,m) => {
+    const c = m.courses.filter(c => c.cstatus === '미수료').length; return s+c;}, 0);
+
+  // 평균 학습시간: 과정 수 × 8h 가중 mock
+  const avgHours = total > 0 ? ((totalApply * 7.4) / total).toFixed(1) : 0;
+  const avgApply = total > 0 ? (totalApply / total).toFixed(1) : 0;
+  const completeRate = totalApply > 0 ? Math.round((totalComp / totalApply) * 100) : 0;
+
+  return { total, totalApply, totalPlan, totalLearn, totalEnd, totalComp,
+           totalPending, totalIncomplete, avgHours, avgApply, completeRate };
+}
+
+/* ════════════════════════════════════════
+   대시보드 렌더
+════════════════════════════════════════ */
+function renderDash(list) {
+  const s = calcStats(list);
+  const ctx = getContextLabel();
+
+  document.getElementById('dash-title').textContent = ctx;
+  document.getElementById('dash-member-count').textContent = s.total;
+
+  /* 상단 4칸 */
+  document.getElementById('dash-top').innerHTML = `
+    <!-- 총 인원 -->
+    <div class="dcard dcard-accent">
+      <div class="dcard-label">총 인원</div>
+      <div class="dcard-val">${s.total}<span class="unit">명</span></div>
+    </div>
+
+    <!-- 신청 수 -->
+    <div class="dcard">
+      <div class="dcard-label">신청 수</div>
+      <div class="dcard-val dcard-val-sm">${s.totalApply}<span class="unit">건</span></div>
+    </div>
+
+    <!-- 학습 수 분해 -->
+    <div class="dcard dcard-split">
+      <div class="dcard-label">학습 수</div>
+      <div class="dcard-main">
+        <div class="dcard-main-val">${s.totalApply}<span class="unit">건</span></div>
+      </div>
+      <div class="dcard-divider"></div>
+      <div class="dcard-breakdown">
+        <div class="bd-item">
+          <div class="bd-dot" style="background:var(--s-plan)"></div>
+          <div class="bd-num" style="color:var(--s-plan)">${s.totalPlan}</div>
+          <div class="bd-label">예정</div>
+        </div>
+        <div class="bd-item">
+          <div class="bd-dot" style="background:var(--s-learning)"></div>
+          <div class="bd-num" style="color:var(--s-learning)">${s.totalLearn}</div>
+          <div class="bd-label">학습중</div>
+        </div>
+        <div class="bd-item">
+          <div class="bd-dot" style="background:var(--s-end)"></div>
+          <div class="bd-num" style="color:var(--s-end)">${s.totalEnd}</div>
+          <div class="bd-label">종료</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 수료 수 분해 -->
+    <div class="dcard dcard-split">
+      <div class="dcard-label">수료 수</div>
+      <div class="dcard-main">
+        <div class="dcard-main-val">${s.totalComp}<span class="unit">건</span></div>
+      </div>
+      <div class="dcard-divider"></div>
+      <div class="dcard-breakdown">
+        <div class="bd-item">
+          <div class="bd-dot" style="background:var(--s-pending)"></div>
+          <div class="bd-num" style="color:var(--s-pending)">${s.totalPending}</div>
+          <div class="bd-label">처리 전</div>
+        </div>
+        <div class="bd-item">
+          <div class="bd-dot" style="background:var(--s-complete)"></div>
+          <div class="bd-num" style="color:var(--s-complete)">${s.totalComp}</div>
+          <div class="bd-label">수료</div>
+        </div>
+        <div class="bd-item">
+          <div class="bd-dot" style="background:var(--s-incomplete)"></div>
+          <div class="bd-num" style="color:var(--s-incomplete)">${s.totalIncomplete}</div>
+          <div class="bd-label">미수료</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  /* 하단 3칸 */
+  document.getElementById('dash-bottom').innerHTML = `
+    <div class="dcard dcard-accent2">
+      <div class="dcard-label">평균 학습 시간</div>
+      <div class="dcard-sub-val">${s.avgHours}<span class="unit">h</span></div>
+      <div class="dcard-sub-desc">부서원 1인당 평균</div>
+    </div>
+    <div class="dcard">
+      <div class="dcard-label">평균 신청 수</div>
+      <div class="dcard-sub-val">${s.avgApply}<span class="unit">건</span></div>
+      <div class="dcard-sub-desc">부서원 1인당 평균</div>
+    </div>
+    <div class="dcard">
+      <div class="dcard-label">수료율</div>
+      <div class="dcard-sub-val">${s.completeRate}<span class="unit">%</span></div>
+      <div class="gauge-wrap">
+        <div class="gauge-bar"><div class="gauge-fill" style="width:${s.completeRate}%"></div></div>
+        <div class="gauge-labels"><span>0%</span><span>100%</span></div>
+      </div>
+    </div>
+  `;
+}
+
+/* ════════════════════════════════════════
+   목록 렌더
+════════════════════════════════════════ */
+function getDeptStr(m) {
+  return m.deptSub ? `${m.deptTop} > ${m.deptSub}` : m.deptTop;
+}
+
+function renderList(list) {
+  const tbody = document.getElementById('member-list');
+  document.getElementById('list-count-num').textContent = list.length;
+  tbody.innerHTML = '';
+
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">조회 결과가 없습니다.</td></tr>';
+    return;
+  }
+
+  list.forEach((m, idx) => {
+    const posRole = [m.position, m.grade].filter(Boolean).join(' · ') || '';
+    const roleHtml = posRole ? `<div class="emp-role">${posRole}</div>` : '';
+    const row = document.createElement('tr');
+    // NO: 정렬 최하위 = 1
+    const no = list.length - idx;
+    row.innerHTML = `
+      <td class="tc no-col">${no}</td>
+      <td>
+        <div class="emp-cell">
+          <div class="emp-av" style="background:${m.color}">${m.avatar}</div>
+          <div class="emp-meta">
+            <div class="emp-name">${m.name}</div>
+            <div class="emp-dept">${getDeptStr(m)}</div>
+            ${roleHtml}
+          </div>
+        </div>
+      </td>
+      <td class="tc"><span class="stat-num">${m.apply}</span><span class="stat-unit">건</span></td>
+      <td class="tc"><span class="stat-num ${m.plan===0?'z':''}">${m.plan}</span><span class="stat-unit">건</span></td>
+      <td class="tc"><span class="stat-num ${m.learning===0?'z':''}">${m.learning}</span><span class="stat-unit">건</span></td>
+      <td class="tc"><span class="stat-num ${m.end===0?'z':''}">${m.end}</span><span class="stat-unit">건</span></td>
+      <td class="tc"><span class="stat-num ${m.complete===0?'z':''}">${m.complete}</span><span class="stat-unit">건</span></td>
+      <td class="tc"><button class="btn-detail" onclick="openPanel(${m.id})">상세</button></td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+/* ════════════════════════════════════════
+   필터 통합 적용
+════════════════════════════════════════ */
+function applyFilters() {
+  const list = getFiltered();
+  renderDash(list);
+  renderList(list);
+}
+
+/* ════════════════════════════════════════
+   검색 컨트롤
+════════════════════════════════════════ */
+function onDept1Change() {
+  const v = document.getElementById('dept1').value;
+  const d2 = document.getElementById('dept2');
+  if (v === 'IT기획팀') {
+    d2.style.display = 'block';
+    d2.value = 'all';
+  } else {
+    d2.style.display = 'none';
+    d2.value = 'all';
+  }
+  applyFilters();
+}
+
+function resetSearch() {
+  document.getElementById('dept1').value = 'IT기획팀';
+  document.getElementById('dept2').value = 'all';
+  document.getElementById('dept2').style.display = 'block';
+  document.getElementById('year').value = '2026';
+  document.getElementById('keyword').value = '';
+  document.getElementById('sort-sel').value = 'name-asc';
+  applyFilters();
+}
+
+/* ════════════════════════════════════════
+   패널
+════════════════════════════════════════ */
+// 패널 내 현재 필터 상태
+let panelFilters = { type: [], lstatus: [], cstatus: [] };
+
+function openPanel(id) {
+  const m = ALL_MEMBERS.find(x => x.id === id);
+  currentPanelMember = m;
+  panelFilters = { type: [], lstatus: [], cstatus: [] };
+  renderPanelContent(m, panelFilters);
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(() => document.getElementById('side-panel').classList.add('open'), 10);
+}
+
+function closePanel() {
+  document.getElementById('side-panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function renderPanelContent(m, filters) {
+  const posRole = [m.position, m.grade].filter(Boolean).join(' · ') || '—';
+
+  // 과정 필터 적용
+  let courses = m.courses;
+  if (filters.type.length > 0)    courses = courses.filter(c => filters.type.includes(c.type));
+  if (filters.lstatus.length > 0) courses = courses.filter(c => filters.lstatus.includes(c.lstatus));
+  if (filters.cstatus.length > 0) courses = courses.filter(c => filters.cstatus.includes(c.cstatus));
+
+  const courseRows = courses.length > 0
+    ? courses.map(c => `
+      <tr>
+        <td>${typeBadge(c.type)}</td>
+        <td><div class="cn">${c.name}</div><div class="cp">${c.start} ~ ${c.end}</div></td>
+        <td>${lsBadge(c.lstatus)}</td>
+        <td>${csBadge(c.cstatus)}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="4" class="panel-empty">조회 결과가 없습니다.</td></tr>`;
+
+  const mkChip = (group, val, label) => {
+    const active = filters[group].includes(val) ? ' active' : '';
+    return `<button class="chip${active}" onclick="togglePanelChip(this,'${group}','${val}')">${label}</button>`;
+  };
+  const allActive = (group) => filters[group].length === 0 ? ' active' : '';
+
+  document.getElementById('panel-body').innerHTML = `
+    <div class="emp-card">
+      <div class="ec-av" style="background:${m.color}">${m.avatar}</div>
+      <div class="ec-meta">
+        <div class="ec-name">${m.name}</div>
+        <div class="ec-dept">${getDeptStr(m)}</div>
+        <div class="ec-role">${posRole}</div>
+      </div>
+      <div class="ec-stats">
+        <div class="ec-stat"><div class="ec-sv" style="color:var(--primary)">${m.apply}</div><div class="ec-sl">신청</div></div>
+        <div class="ec-stat"><div class="ec-sv" style="color:var(--s-plan)">${m.plan}</div><div class="ec-sl">예정</div></div>
+        <div class="ec-stat"><div class="ec-sv" style="color:var(--s-learning)">${m.learning}</div><div class="ec-sl">학습중</div></div>
+        <div class="ec-stat"><div class="ec-sv" style="color:var(--s-end)">${m.end}</div><div class="ec-sl">종료</div></div>
+        <div class="ec-stat"><div class="ec-sv" style="color:var(--s-complete)">${m.complete}</div><div class="ec-sl">수료</div></div>
+      </div>
+    </div>
+
+    <div class="pf-label">학습 목록 필터</div>
+    <div class="filter-row">
+      <div class="fg2">
+        <label>과정유형</label>
+        <div class="chips">
+          <button class="chip${allActive('type')}" onclick="togglePanelChip(this,'type','__all__')">전체</button>
+          ${mkChip('type','online','온라인')}
+          ${mkChip('type','offline','오프라인')}
+          ${mkChip('type','hybrid','하이브리드')}
+          ${mkChip('type','micro','마이크로러닝')}
+        </div>
+      </div>
+      <div class="fg2">
+        <label>학습상태</label>
+        <div class="chips">
+          <button class="chip${allActive('lstatus')}" onclick="togglePanelChip(this,'lstatus','__all__')">전체</button>
+          ${mkChip('lstatus','예정','예정')}
+          ${mkChip('lstatus','학습중','학습중')}
+          ${mkChip('lstatus','종료','종료')}
+        </div>
+      </div>
+      <div class="fg2">
+        <label>수료상태</label>
+        <div class="chips">
+          <button class="chip${allActive('cstatus')}" onclick="togglePanelChip(this,'cstatus','__all__')">전체</button>
+          ${mkChip('cstatus','처리 전','처리 전')}
+          ${mkChip('cstatus','수료','수료')}
+          ${mkChip('cstatus','미수료','미수료')}
+        </div>
+      </div>
+    </div>
+
+    <div class="plh">
+      <div class="plt">학습 목록</div>
+      <div class="plc">총 ${courses.length}건</div>
+    </div>
+    <table class="pt">
+      <thead>
+        <tr><th>과정유형</th><th>과정명 / 학습기간</th><th>학습상태</th><th>수료상태</th></tr>
+      </thead>
+      <tbody>${courseRows}</tbody>
+    </table>
+  `;
+}
+
+function togglePanelChip(el, group, val) {
+  if (val === '__all__') {
+    panelFilters[group] = [];
+  } else {
+    const arr = panelFilters[group];
+    const idx = arr.indexOf(val);
+    if (idx >= 0) arr.splice(idx, 1);
+    else arr.push(val);
+  }
+  renderPanelContent(currentPanelMember, panelFilters);
+}
+
+/* ════════════════════════════════════════
+   뱃지 헬퍼
+════════════════════════════════════════ */
+function typeBadge(t) {
+  const map = {online:'온라인',offline:'오프라인',hybrid:'하이브리드',micro:'마이크로러닝'};
+  return `<span class="badge badge-${t}">${map[t]||t}</span>`;
+}
+function lsBadge(s) {
+  const map = {'예정':'badge-plan','학습중':'badge-learning','종료':'badge-end'};
+  return `<span class="badge ${map[s]||''}">${s}</span>`;
+}
+function csBadge(s) {
+  const map = {'수료':'badge-complete','미수료':'badge-incomplete','처리 전':'badge-pending'};
+  return `<span class="badge ${map[s]||''}">${s}</span>`;
+}
+
+/* ════════════════════════════════════════
+   초기 렌더
+════════════════════════════════════════ */
+applyFilters();
+</script>
+</body>
+</html>
